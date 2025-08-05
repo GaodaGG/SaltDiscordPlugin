@@ -1,0 +1,70 @@
+plugins {
+    id 'java'
+    id 'org.jetbrains.kotlin.jvm' version '2.0.21'
+    id 'org.jetbrains.kotlin.kapt' version '2.0.21'
+}
+
+group = 'com.gg.SaltDiscordPlugin'
+version = '1.0.0'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        url = 'https://jitpack.io'
+    }
+}
+
+dependencies {
+    implementation 'com.github.JnCrMx:discord-game-sdk4j:v1.0.0'
+//    implementation 'net.java.dev.jna:jna:5.13.0'
+//    implementation 'net.java.dev.jna:jna-platform:5.13.0'
+    compileOnly "com.github.Moriafly:spw-workshop-api:0.1.0-dev07"
+    kapt "com.github.Moriafly:spw-workshop-api:0.1.0-dev07"
+
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+def pluginClass = "com.gg.SaltSteamPlugin.MainPlugin"
+def pluginId = "临时Steam丰富状态"
+def pluginVersion = "0.0.1"
+def pluginProvider = "GaodaGG"
+
+tasks.named("jar") {
+    destinationDirectory = file("C://Users/zil07/AppData/Roaming/Salt Player for Windows/workshop/")
+    archiveFileName = "plugin-${pluginId}-${pluginVersion}.jar"
+
+    manifest {
+        attributes["Plugin-Class"] = pluginClass
+        attributes["Plugin-Id"] = pluginId
+        attributes["Plugin-Version"] = pluginVersion
+        attributes["Plugin-Provider"] = pluginProvider
+    }
+}
+
+tasks.register("plugin", Jar) {
+    destinationDirectory = file("C://Users/zil07/AppData/Roaming/Salt Player for Windows/workshop")
+    archiveFileName = "plugin-${pluginId}-${pluginVersion}.zip"
+    archiveBaseName.set("plugin-" + pluginId + "-" + pluginVersion)
+
+    into("classes") {
+        with(tasks.named("jar").get())
+    }
+    dependsOn(configurations.runtimeClasspath)
+    into("lib") {
+        from({
+            configurations.runtimeClasspath
+                    .filter { it.name.endsWith("jar") }
+        })
+    }
+    archiveExtension = 'zip'
+}
