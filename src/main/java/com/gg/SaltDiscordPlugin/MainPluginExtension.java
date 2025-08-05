@@ -45,6 +45,6 @@ public class MainPluginExtension implements PlaybackExtensionPoint {
 
     @Override
     public void onLyricsLineUpdated(@Nullable LyricsLine lyricsLine) {
-//        lyricsLine
+
     }
 }

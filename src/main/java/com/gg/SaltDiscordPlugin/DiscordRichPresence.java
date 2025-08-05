@@ -3,9 +3,9 @@ package com.gg.SaltDiscordPlugin;
 import de.jcm.discordgamesdk.Core;
 import de.jcm.discordgamesdk.CreateParams;
 import de.jcm.discordgamesdk.GameSDKException;
+import de.jcm.discordgamesdk.Result;
 import de.jcm.discordgamesdk.activity.Activity;
 import de.jcm.discordgamesdk.activity.ActivityType;
-import de.jcm.discordgamesdk.Result;
 
 import java.time.Instant;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -19,19 +19,26 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class DiscordRichPresence {
 
+    private static final Object lock = new Object();
     // 单例实例
     private static volatile DiscordRichPresence instance;
-    private static final Object lock = new Object();
 
+    static {
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            if (instance != null && instance.isInitialized()) {
+                System.out.println("程序退出，正在清理 Discord Rich Presence...");
+                instance.shutdown();
+            }
+        }));
+    }
+
+    private final AtomicBoolean initialized = new AtomicBoolean(false);
     // Discord 相关
     private Core core;
     private Activity currentActivity;
-    private final AtomicBoolean initialized = new AtomicBoolean(false);
     private Thread callbackThread;
-
     // 默认配置
     private long clientId;
-
     // 当前播放状态
     private volatile String currentSong = "";
     private volatile String currentArtist = "";
@@ -44,6 +51,7 @@ public class DiscordRichPresence {
 
     /**
      * 获取单例实例
+     *
      * @return DiscordRichPresence 单例实例
      */
     public static DiscordRichPresence getInstance() {
@@ -59,6 +67,7 @@ public class DiscordRichPresence {
 
     /**
      * 初始化 Discord Rich Presence
+     *
      * @param clientId Discord 应用程序 ID
      * @return 是否初始化成功
      */
@@ -96,6 +105,7 @@ public class DiscordRichPresence {
 
     /**
      * 检查是否已初始化
+     *
      * @return 是否已初始化
      */
     public boolean isInitialized() {
@@ -104,10 +114,11 @@ public class DiscordRichPresence {
 
     /**
      * 设置正在听音乐的状态
+     *
      * @param songName 歌曲名称
-     * @param artist 艺术家
-     * @param album 专辑名称
-     * @param playing 是否正在播放
+     * @param artist   艺术家
+     * @param album    专辑名称
+     * @param playing  是否正在播放
      */
     public synchronized void setListeningActivity(String songName, String artist, String album, boolean playing) {
         if (!initialized.get() || core == null) {
@@ -206,7 +217,7 @@ public class DiscordRichPresence {
         callbackThread = new Thread(() -> {
             int count = 0;
             while (initialized.get() && !Thread.currentThread().isInterrupted()) {
-                try{
+                try {
                     if (core != null) {
                         core.runCallbacks();
                     }
@@ -273,15 +284,6 @@ public class DiscordRichPresence {
         isPlaying = false;
 
         System.out.println("Discord Rich Presence 已关闭");
-    }
-
-    static {
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            if (instance != null && instance.isInitialized()) {
-                System.out.println("程序退出，正在清理 Discord Rich Presence...");
-                instance.shutdown();
-            }
-        }));
     }
 }
 
