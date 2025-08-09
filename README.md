@@ -4,10 +4,10 @@
 
 # **不需要解压!!**
 
-## 已知问题
-- Discord会从steam中获取SPW信息，会导致出现两个Rich Presence状态
-- 微软商店版没有此问题
-## 临时解决方法
+## Discord出现两个SPW的解决方法
 Discord左下角用户设置 - 注册游戏 把SPW给毙了
+
 ## 其他插件:
+[Steam 丰富状态扩展](https://github.com/GaodaGG/SaltSteamPlugin)
+
 [临时SPW全屏窗口插件](https://github.com/GaodaGG/SaltFullPlugin)
