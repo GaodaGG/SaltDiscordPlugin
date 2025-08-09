@@ -33,6 +33,7 @@ public class DiscordRichPresence {
     }
 
     private final AtomicBoolean initialized = new AtomicBoolean(false);
+    public volatile Instant startTimestamp = Instant.now();
     // Discord 相关
     private Core core;
     private Activity currentActivity;
@@ -120,7 +121,7 @@ public class DiscordRichPresence {
      * @param album    专辑名称
      * @param playing  是否正在播放
      */
-    public synchronized void setListeningActivity(String songName, String artist, String album, boolean playing) {
+    public synchronized void setListeningActivity(String songName, String artist, String album, Instant endTimestamp, boolean playing) {
         if (!initialized.get() || core == null) {
             System.err.println("Discord Rich Presence 未初始化，请先调用 initialize()");
             return;
@@ -152,6 +153,7 @@ public class DiscordRichPresence {
             String safeAlbum = (album == null || album.trim().isEmpty()) ? "Unknown Album" : album.trim();
 
             // 设置歌曲信息
+//            currentActivity.setType();
             currentActivity.setDetails(safeSongName);  // 第一行：歌曲名
             currentActivity.setState(safeArtist);  // 第二行：艺术家
 
@@ -163,15 +165,17 @@ public class DiscordRichPresence {
             if (playing) {
                 currentActivity.assets().setSmallImage("play_icon");
                 currentActivity.assets().setSmallText("正在播放");
-                // 设置开始时间以显示播放时长
+                // 只在播放时设置时间戳
                 currentActivity.timestamps().setStart(Instant.now());
+                currentActivity.timestamps().setEnd(endTimestamp);
             } else {
                 currentActivity.assets().setSmallImage("pause_icon");
                 currentActivity.assets().setSmallText("已暂停");
-                // 暂停时清除时间戳
-//                currentActivity.timestamps().setEnd();
             }
-            currentActivity.timestamps().setStart(Instant.now());
+
+            if (!this.currentSong.equals(safeSongName)) {
+                this.startTimestamp = Instant.now();
+            }
 
             // 更新活动
             core.activityManager().updateActivity(currentActivity, result -> {
@@ -197,16 +201,16 @@ public class DiscordRichPresence {
     /**
      * 设置正在听音乐的状态
      */
-    public void setListeningActivity(String songName, String artist, String album) {
-        setListeningActivity(songName, artist, album, true);
+    public void setListeningActivity(String songName, String artist, String album, Instant endTimestamp) {
+        setListeningActivity(songName, artist, album, endTimestamp, true);
     }
 
     /**
      * 更新播放状态
      */
-    public void updatePlayingState(boolean playing) {
+    public void updatePlayingState(Instant endTimestamp, boolean playing) {
         if (!currentSong.isEmpty()) {
-            setListeningActivity(currentSong, currentArtist, currentAlbum, playing);
+            setListeningActivity(currentSong, currentArtist, currentAlbum, endTimestamp, playing);
         }
     }
 
