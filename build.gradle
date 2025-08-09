@@ -23,8 +23,8 @@ dependencies {
     implementation 'com.github.JnCrMx:discord-game-sdk4j:v1.0.0'
 //    implementation 'net.java.dev.jna:jna:5.13.0'
 //    implementation 'net.java.dev.jna:jna-platform:5.13.0'
-    compileOnly "com.github.Moriafly:spw-workshop-api:0.1.0-dev07"
-    kapt "com.github.Moriafly:spw-workshop-api:0.1.0-dev07"
+    compileOnly "com.github.Moriafly:spw-workshop-api:0.1.0-dev08"
+    kapt "com.github.Moriafly:spw-workshop-api:0.1.0-dev08"
 
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
@@ -36,7 +36,7 @@ test {
 
 def pluginClass = "com.gg.SaltSteamPlugin.MainPlugin"
 def pluginId = "Discord 丰富状态"
-def pluginVersion = "0.0.1"
+def pluginVersion = "0.0.2"
 def pluginProvider = "GaodaGG"
 
 tasks.named("jar") {

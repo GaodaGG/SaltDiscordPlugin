@@ -227,7 +227,7 @@ public class DiscordRichPresence {
                     try {
                         Thread.sleep(6000);
                     } catch (InterruptedException ex) {
-                        throw new RuntimeException(ex);
+
                     }
                     count++;
                     System.err.println("Discord 未启动 或连接失败，尝试重新连接... (" + count + "/10)");
