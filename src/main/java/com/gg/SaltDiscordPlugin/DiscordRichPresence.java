@@ -356,7 +356,10 @@ public class DiscordRichPresence {
         command.setCmd(Command.Type.SET_ACTIVITY);
         command.setArgs(asJsonObject);
         command.setNonce(Long.toString(++nonce));
-        sendCommand.invoke(core, command, (Consumer<Command>) c -> callback.accept(corePrivate.checkError(c)));
+        sendCommand.invoke(core, command, (Consumer<Command>) c -> {
+            callback.accept(corePrivate.checkError(c));
+        });
+        core.activityManager().updateActivity(currentActivity);
     }
 
     /**
@@ -368,7 +371,11 @@ public class DiscordRichPresence {
             while (initialized.get() && !Thread.currentThread().isInterrupted()) {
                 try {
                     if (core != null) {
-                        core.runCallbacks();
+                        try {
+                            core.runCallbacks();
+                        } catch (Exception e) {
+                            System.err.println("运行 Discord 回调时出错: " + e.getMessage());
+                        }
                     }
 
                     count = 0; // 成功时重置计数
