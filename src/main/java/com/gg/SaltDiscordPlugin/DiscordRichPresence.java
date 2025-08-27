@@ -359,7 +359,6 @@ public class DiscordRichPresence {
         sendCommand.invoke(core, command, (Consumer<Command>) c -> {
             callback.accept(corePrivate.checkError(c));
         });
-        core.activityManager().updateActivity(currentActivity);
     }
 
     /**
