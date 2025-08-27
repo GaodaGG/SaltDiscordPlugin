@@ -1,14 +1,22 @@
 package com.gg.SaltDiscordPlugin;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import de.jcm.discordgamesdk.Core;
 import de.jcm.discordgamesdk.CreateParams;
 import de.jcm.discordgamesdk.GameSDKException;
 import de.jcm.discordgamesdk.Result;
 import de.jcm.discordgamesdk.activity.Activity;
 import de.jcm.discordgamesdk.activity.ActivityType;
+import de.jcm.discordgamesdk.impl.Command;
+import de.jcm.discordgamesdk.impl.commands.SetActivity;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.time.Instant;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 /**
  * Discord Rich Presence 单例类
@@ -44,6 +52,11 @@ public class DiscordRichPresence {
     private volatile String currentArtist = "";
     private volatile String currentAlbum = "";
     private volatile boolean isPlaying = false;
+    private volatile String currentCoverUrl = ""; // 当前封面URL
+    // 播放进度相关
+    private volatile long currentPosition = 0; // 当前播放位置（毫秒）
+    private volatile long songDuration = 0; // 歌曲总时长（毫秒）
+    private volatile Instant playStartTime = null; // 播放开始时间
 
     private DiscordRichPresence() {
 
@@ -84,7 +97,6 @@ public class DiscordRichPresence {
         params.setFlags(CreateParams.Flags.NO_REQUIRE_DISCORD);
 
         core = new Core(params);
-//        core.activityManager().registerSteam(3009140);
 
         // 启动回调线程
         startCallbackThread();
@@ -156,25 +168,34 @@ public class DiscordRichPresence {
             currentActivity.setState(safeArtist);  // 第二行：艺术家
 
             // 设置大图标和悬停文本
-            currentActivity.assets().setLargeImage("app_icon");
+            // 如果有封面URL，使用封面；否则使用默认图标
+            if (currentCoverUrl != null && !currentCoverUrl.trim().isEmpty()) {
+                currentActivity.assets().setLargeImage(currentCoverUrl);
+            } else {
+                currentActivity.assets().setLargeImage("app_icon");
+            }
             currentActivity.assets().setLargeText(safeAlbum);
 
             // 设置小图标表示播放/暂停状态
             if (playing) {
                 currentActivity.assets().setSmallImage("play_icon");
                 currentActivity.assets().setSmallText("正在播放");
-                // 设置开始时间以显示播放时长
-                currentActivity.timestamps().setStart(Instant.now());
             } else {
                 currentActivity.assets().setSmallImage("pause_icon");
                 currentActivity.assets().setSmallText("已暂停");
-                // 暂停时清除时间戳
-//                currentActivity.timestamps().setEnd();
             }
-            currentActivity.timestamps().setStart(Instant.now());
+
+            // 更新当前状态
+            this.currentSong = safeSongName;
+            this.currentArtist = safeArtist;
+            this.currentAlbum = safeAlbum;
+            this.isPlaying = playing;
+
+            // 设置时间戳
+            updateTimestamps();
 
             // 更新活动
-            core.activityManager().updateActivity(currentActivity, result -> {
+            updateActivity(result -> {
                 if (result == Result.OK) {
                     System.out.println("Discord 状态已更新: " + safeSongName + " - " + safeArtist +
                             " [" + (playing ? "播放中" : "已暂停") + "]");
@@ -182,12 +203,6 @@ public class DiscordRichPresence {
                     System.err.println("更新 Discord 状态失败: " + result);
                 }
             });
-
-            // 更新当前状态
-            this.currentSong = safeSongName;
-            this.currentArtist = safeArtist;
-            this.currentAlbum = safeAlbum;
-            this.isPlaying = playing;
 
         } catch (Exception e) {
             System.err.println("设置音乐活动失败: " + e.getMessage());
@@ -208,6 +223,140 @@ public class DiscordRichPresence {
         if (!currentSong.isEmpty()) {
             setListeningActivity(currentSong, currentArtist, currentAlbum, playing);
         }
+    }
+
+
+    public synchronized void updatePlaybackPosition(long position) {
+        this.currentPosition = position;
+
+        // 只有在播放状态下才更新时间戳
+        if (isPlaying && currentActivity != null) {
+            updateTimestamps();
+        }
+    }
+
+    /**
+     * 设置歌曲总时长
+     *
+     * @param duration 歌曲总时长（毫秒）
+     */
+    public void setSongDuration(long duration) {
+        this.songDuration = duration;
+    }
+
+    /**
+     * 设置封面URL
+     *
+     * @param coverUrl 封面图片URL
+     */
+    public void setCoverUrl(String coverUrl) {
+        if (coverUrl != null && !coverUrl.equals(this.currentCoverUrl)) {
+            this.currentCoverUrl = coverUrl;
+            // 如果当前有活动，更新封面
+            if (currentActivity != null && !currentSong.isEmpty()) {
+                updateActivityWithCover();
+            }
+        }
+    }
+
+    /**
+     * 更新当前活动的封面图片
+     */
+    private void updateActivityWithCover() {
+        if (currentActivity == null) {
+            return;
+        }
+
+        try {
+            // 更新大图标
+            if (currentCoverUrl != null && !currentCoverUrl.trim().isEmpty()) {
+                currentActivity.assets().setLargeImage(currentCoverUrl);
+            } else {
+                currentActivity.assets().setLargeImage("app_icon");
+            }
+
+            // 更新活动
+            updateActivity(result -> {
+                if (result == Result.OK) {
+                    System.out.println("Discord 封面已更新: " + currentCoverUrl);
+                } else {
+                    System.err.println("更新 Discord 封面失败: " + result);
+                }
+            });
+
+        } catch (Exception e) {
+            System.err.println("更新封面失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 更新Discord活动的时间戳以反映当前播放进度
+     */
+    private void updateTimestamps() {
+        if (currentActivity == null) {
+            return;
+        }
+
+        try {
+            Instant now = Instant.now();
+
+            if (isPlaying) {
+                // 计算播放开始时间：当前时间 - 已播放时间
+                Instant startTime = now.minusMillis(currentPosition);
+                currentActivity.timestamps().setStart(startTime);
+
+                // 如果有歌曲总时长，设置结束时间
+                if (songDuration > 0) {
+                    Instant endTime = startTime.plusMillis(songDuration);
+                    currentActivity.timestamps().setEnd(endTime);
+                }
+
+                playStartTime = startTime;
+            } else {
+                // 暂停时清除时间戳
+                currentActivity.timestamps().setStart(null);
+                currentActivity.timestamps().setEnd(null);
+            }
+
+            // 更新活动
+
+            updateActivity(result -> {
+                if (result != Result.OK) {
+                    System.err.println("更新播放进度失败: " + result);
+                }
+            });
+
+        } catch (Exception e) {
+            System.err.println("更新时间戳失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 通过反射调用私有方法更新活动
+     */
+    private void updateActivity(Consumer<Result> callback) throws NoSuchFieldException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+        Class<?> coreClazz = core.getClass();
+
+        Field corePrivateField = coreClazz.getDeclaredField("corePrivate");
+        Field nonceField = coreClazz.getDeclaredField("nonce");
+        Method sendCommand = coreClazz.getDeclaredMethod("sendCommand", Command.class, Consumer.class);
+
+        corePrivateField.setAccessible(true);
+        nonceField.setAccessible(true);
+        sendCommand.setAccessible(true);
+
+        long nonce = (long) nonceField.get(core);
+        Core.CorePrivate corePrivate = (Core.CorePrivate) corePrivateField.get(core);
+
+        SetActivity.Args args = new SetActivity.Args(corePrivate.pid, currentActivity);
+        JsonObject asJsonObject = new Gson().toJsonTree(args).getAsJsonObject();
+        asJsonObject.get("activity").getAsJsonObject().addProperty("status_display_type", DisplayType.Details.ordinal()); // 服了，就为了这玩意各种反射拿
+
+        Command command = new Command();
+        command.setCmd(Command.Type.SET_ACTIVITY);
+        command.setArgs(asJsonObject);
+        command.setNonce(Long.toString(++nonce));
+        sendCommand.invoke(core, command, (Consumer<Command>) c -> callback.accept(corePrivate.checkError(c)));
     }
 
     /**
@@ -281,7 +430,11 @@ public class DiscordRichPresence {
         currentSong = "";
         currentArtist = "";
         currentAlbum = "";
+        currentCoverUrl = "";
         isPlaying = false;
+        currentPosition = 0;
+        songDuration = 0;
+        playStartTime = null;
 
         System.out.println("Discord Rich Presence 已关闭");
     }
