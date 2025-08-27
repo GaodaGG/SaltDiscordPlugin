@@ -141,6 +141,7 @@ public class MainPluginExtension implements PlaybackExtensionPoint {
                 discordRichPresence.setCoverUrl(coverUrl);
                 System.out.println("封面获取成功: " + coverUrl);
             } else {
+                discordRichPresence.setCoverUrl("app_icon");
                 System.out.println("封面获取失败，将使用默认图标");
             }
         }).start();

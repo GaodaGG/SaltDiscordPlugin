@@ -67,6 +67,14 @@ public class Config {
     public void saveConfig() {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         Path configPath = getConfigPath();
+        if (configPath.getParent() != null) {
+            try {
+                Files.createDirectories(configPath.getParent());
+            } catch (IOException e) {
+                System.err.println("创建配置目录失败: " + e.getMessage());
+                return;
+            }
+        }
         try (Writer writer = Files.newBufferedWriter(configPath)) {
             gson.toJson(configData, writer);
             System.out.println("配置文件保存成功");
