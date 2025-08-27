@@ -178,10 +178,10 @@ public class DiscordRichPresence {
 
             // 设置小图标表示播放/暂停状态
             if (playing) {
-                currentActivity.assets().setSmallImage("play_icon");
+                currentActivity.assets().setSmallImage("pause_icon");
                 currentActivity.assets().setSmallText("正在播放");
             } else {
-                currentActivity.assets().setSmallImage("pause_icon");
+                currentActivity.assets().setSmallImage("play_icon");
                 currentActivity.assets().setSmallText("已暂停");
             }
 

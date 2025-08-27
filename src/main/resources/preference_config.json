@@ -1,0 +1,75 @@
+{
+  "configs": [
+    {
+      "title": "Config",
+      "config": "config.json",
+      "preferences": [
+        {
+          "key": "displayType",
+          "type": "list",
+          "title": "类型",
+          "default_value": "Name",
+          "summary": "This is a summary",
+          "entries": [
+            "Name",
+            "State",
+            "Details"
+          ],
+          "entry_values": [
+            "Name",
+            "State",
+            "Details"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Cloudflare 相关",
+      "config": "config.json",
+      "preferences": [
+        {
+          "key": "useCFC2",
+          "type": "switch",
+          "title": "使用自己的Cloudflare R2 存储",
+          "default_value": false,
+          "summary": "启用后将从音频文件提取封面并上传到您的R2存储，而不是在线获取封面"
+        },
+        {
+          "key": "cfc2BucketName",
+          "type": "edittext",
+          "title": "存储桶名称 (Bucket Name)",
+          "default_value": "",
+          "summary": "您在Cloudflare R2中创建的存储桶名称"
+        },
+        {
+          "key": "cfc2Endpoint",
+          "type": "edittext",
+          "title": "访问端点 (Endpoint)",
+          "default_value": "",
+          "summary": "Cloudflare账户ID，用于S3 API连接"
+        },
+        {
+          "key": "cfc2PublicUrl",
+          "type": "edittext",
+          "title": "公开访问URL",
+          "default_value": "",
+          "summary": "R2存储桶公开访问URL，如: https://cdn.yourdomain.com 或 https://bucket.r2.dev"
+        },
+        {
+          "key": "cfc2AccessKey",
+          "type": "edittext",
+          "title": "访问密钥 (Access Key)",
+          "default_value": "",
+          "summary": "R2 API Token的Access Key ID"
+        },
+        {
+          "key": "cfc2SecretKey",
+          "type": "edittext",
+          "title": "密钥 (Secret Key)",
+          "default_value": "",
+          "summary": "R2 API Token的Secret Access Key"
+        }
+      ]
+    }
+  ]
+}
