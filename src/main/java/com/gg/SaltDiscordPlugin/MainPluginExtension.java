@@ -133,7 +133,13 @@ public class MainPluginExtension implements PlaybackExtensionPoint {
 
             // 如果从文件提取失败或未启用 CFC2，则使用在线获取
             if (coverUrl == null) {
-                coverUrl = fetchOnlineCover(mediaItem);
+                // 尝试网易云接口
+                coverUrl = fetchCoverFromNetEase(mediaItem);
+                
+                // 如果网易云接口失败，尝试酷狗接口
+                if (coverUrl == null) {
+                    coverUrl = fetchCoverFromKugou(mediaItem);
+                }
             }
 
             // 更新封面
@@ -181,9 +187,9 @@ public class MainPluginExtension implements PlaybackExtensionPoint {
     }
 
     /**
-     * 在线获取封面
+     * 使用网易云API在线获取封面
      */
-    private String fetchOnlineCover(MediaItem mediaItem) {
+    private String fetchCoverFromNetEase(MediaItem mediaItem) {
         try {
             // 构建搜索URL
             String searchQuery = mediaItem.getTitle() + "-" + mediaItem.getArtist();
@@ -210,14 +216,72 @@ public class MainPluginExtension implements PlaybackExtensionPoint {
                         if (songInfoArray.size() > 0) {
                             JsonObject songInfo = songInfoArray.get(0).getAsJsonObject();
                             String coverUrl = songInfo.get("pic").getAsString();
-                            System.out.println("在线获取封面成功: " + coverUrl);
+                            System.out.println("网易云接口获取封面成功: " + coverUrl);
                             return coverUrl;
                         }
                     }
                 }
             }
         } catch (Exception e) {
-            System.err.println("在线获取封面失败: " + e.getMessage());
+            System.err.println("网易云接口获取封面失败: " + e.getMessage());
+        }
+        return null;
+    }
+
+    /**
+     * 使用酷狗API在线获取封面
+     */
+    private String fetchCoverFromKugou(MediaItem mediaItem) {
+        try {
+            // 构建搜索URL
+            String searchQuery = mediaItem.getTitle() + " " + mediaItem.getArtist();
+            String encodedQuery = URLEncoder.encode(searchQuery, "UTF-8");
+            String searchUrl = "http://ioscdn.kugou.com/api/v3/search/song?page=1&pagesize=1&version=7910&keyword=" + encodedQuery;
+
+            // 执行搜索请求
+            String searchResult = getUrlContent(searchUrl);
+            JsonObject searchJson = JsonParser.parseString(searchResult).getAsJsonObject();
+
+            if (searchJson.has("data") && !searchJson.get("data").isJsonNull()) {
+                JsonObject data = searchJson.getAsJsonObject("data");
+                if (data.has("info") && !data.get("info").isJsonNull()) {
+                    JsonArray info = data.getAsJsonArray("info");
+
+                    if (info.size() > 0) {
+                        JsonObject songInfo = info.get(0).getAsJsonObject();
+                        String albumId = songInfo.get("album_id").getAsString();
+
+                        // 使用album_id获取专辑信息
+                        String albumUrl = "http://mobilecdn.kugou.com/api/v3/album/song?version=9108&plat=0&pagesize=100&area_code=1&page=1&with_res_tag=1&albumid=" + albumId;
+                        String albumResult = getUrlContent(albumUrl);
+                        JsonObject albumJson = JsonParser.parseString(albumResult).getAsJsonObject();
+
+                        if (albumJson.has("data") && !albumJson.get("data").isJsonNull()) {
+                            JsonObject albumData = albumJson.getAsJsonObject("data");
+                            if (albumData.has("info") && !albumData.get("info").isJsonNull()) {
+                                JsonArray albumInfo = albumData.getAsJsonArray("info");
+                                
+                                if (albumInfo.size() > 0) {
+                                    JsonObject album = albumInfo.get(0).getAsJsonObject();
+                                    if (album.has("union_cover") && !album.get("union_cover").isJsonNull()) {
+                                        String unionCover = album.get("union_cover").getAsString();
+                                        
+                                        // 处理union_cover字段
+                                        String coverUrl = unionCover
+                                            .replace("\\", "") 
+                                            .replace("{size}", ""); 
+                                        
+                                        System.out.println("酷狗接口获取封面成功: " + coverUrl);
+                                        return coverUrl;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("酷狗接口获取封面失败: " + e.getMessage());
         }
         return null;
     }
