@@ -131,11 +131,13 @@ public class MainPluginExtension implements PlaybackExtensionPoint {
 
             // 如果从文件提取失败或未启用 CFR2，则使用在线获取
             if (coverUrl == null) {
-                // 尝试网易云接口
-                coverUrl = fetchCoverFromNetEase(mediaItem);
+                if (!config.isDisableNetEase()) {
+                    // 尝试网易云接口
+                    coverUrl = fetchCoverFromNetEase(mediaItem);
+                }
 
-                // 如果网易云接口失败，尝试酷狗接口
-                if (coverUrl == null) {
+                if (coverUrl == null && !config.isDisableKugou()) {
+                    // 如果网易云接口失败，尝试酷狗接口
                     coverUrl = fetchCoverFromKugou(mediaItem);
                 }
             }

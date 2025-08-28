@@ -137,12 +137,22 @@ public class Config {
         return configData.displayType;
     }
 
+    public boolean isDisableNetEase() {
+        return configData.disableNetEase;
+    }
+
+    public boolean isDisableKugou() {
+        return configData.disableKugou;
+    }
+
     public ConfigData getConfigData() {
         return configData;
     }
 
     public static class ConfigData {
         public String displayType = "Details";
+        public boolean disableNetEase = false;
+        public boolean disableKugou = false;
         public boolean useCFR2 = false;
         public String cfr2BucketName = "";
         public String cfr2Endpoint = "";

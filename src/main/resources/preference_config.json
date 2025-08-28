@@ -20,6 +20,20 @@
             "State",
             "Details"
           ]
+        },
+        {
+          "key": "disableNetEase",
+          "type": "switch",
+          "title": "禁用从网易云获取封面",
+          "default_value": false,
+          "summary": "启用后将不再尝试从网易云音乐获取封面"
+        },
+        {
+          "key": "disableKugou",
+          "type": "switch",
+          "title": "禁用从酷狗获取封面",
+          "default_value": false,
+          "summary": "启用后将不再尝试从酷狗音乐获取封面"
         }
       ]
     },
