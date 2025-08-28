@@ -356,9 +356,7 @@ public class DiscordRichPresence {
         command.setCmd(Command.Type.SET_ACTIVITY);
         command.setArgs(asJsonObject);
         command.setNonce(Long.toString(++nonce));
-        sendCommand.invoke(core, command, (Consumer<Command>) c -> {
-            callback.accept(corePrivate.checkError(c));
-        });
+        sendCommand.invoke(core, command, (Consumer<Command>) c -> callback.accept(corePrivate.checkError(c)));
     }
 
     /**
@@ -370,19 +368,20 @@ public class DiscordRichPresence {
             while (initialized.get() && !Thread.currentThread().isInterrupted()) {
                 try {
                     if (core != null) {
-                        try {
-                            core.runCallbacks();
-                        } catch (Exception e) {
-                            System.err.println("运行 Discord 回调时出错: " + e.getMessage());
-                        }
+                        core.runCallbacks();
                     }
 
                     count = 0; // 成功时重置计数
-                } catch (GameSDKException e) {
+                } catch (Exception e) {
+                    if (!e.getMessage().equals("NOT_RUNNING")) {
+                        e.printStackTrace();
+                        return;
+                    }
+
                     try {
                         Thread.sleep(6000);
                     } catch (InterruptedException ex) {
-
+                        Thread.currentThread().interrupt();
                     }
                     count++;
                     System.err.println("Discord 未启动 或连接失败，尝试重新连接... (" + count + "/10)");

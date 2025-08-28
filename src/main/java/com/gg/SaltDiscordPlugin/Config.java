@@ -116,28 +116,28 @@ public class Config {
     }
 
     // Cloudflare R2 相关配置获取方法
-    public boolean isUseCFC2() {
-        return configData.useCFC2;
+    public boolean isUseCFR2() {
+        return configData.useCFR2;
     }
 
-    public String getCFC2BucketName() {
-        return configData.cfc2BucketName;
+    public String getCFR2BucketName() {
+        return configData.cfr2BucketName;
     }
 
-    public String getCFC2Endpoint() {
-        return configData.cfc2Endpoint;
+    public String getCFR2Endpoint() {
+        return configData.cfr2Endpoint;
     }
 
-    public String getCFC2PublicUrl() {
-        return configData.cfc2PublicUrl;
+    public String getCFR2PublicUrl() {
+        return configData.cfr2PublicUrl;
     }
 
-    public String getCFC2AccessKey() {
-        return configData.cfc2AccessKey;
+    public String getCFR2AccessKey() {
+        return configData.cfr2AccessKey;
     }
 
-    public String getCFC2SecretKey() {
-        return configData.cfc2SecretKey;
+    public String getCFR2SecretKey() {
+        return configData.cfr2SecretKey;
     }
 
     public String getDisplayType() {
@@ -150,11 +150,11 @@ public class Config {
 
     public static class ConfigData {
         public String displayType = "Name";
-        public boolean useCFC2 = false;
-        public String cfc2BucketName = "";
-        public String cfc2Endpoint = "";
-        public String cfc2PublicUrl = "";
-        public String cfc2SecretKey = "";
-        public String cfc2AccessKey = "";
+        public boolean useCFR2 = false;
+        public String cfr2BucketName = "";
+        public String cfr2Endpoint = "";
+        public String cfr2PublicUrl = "";
+        public String cfr2SecretKey = "";
+        public String cfr2AccessKey = "";
     }
 }
