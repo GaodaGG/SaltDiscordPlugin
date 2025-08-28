@@ -7,9 +7,9 @@
         {
           "key": "displayType",
           "type": "list",
-          "title": "类型",
+          "title": "正在听 {显示类型}",
           "default_value": "Details",
-          "summary": "This is a summary",
+          "summary": "选择显示在成员列表状态中的信息类型",
           "entries": [
             "应用名",
             "歌手",
@@ -46,7 +46,7 @@
           "type": "edittext",
           "title": "访问端点 (Endpoint)",
           "default_value": "",
-          "summary": "Cloudflare账户ID，用于S3 API连接"
+          "summary": "位于S3 API前半段，如: https://<end_point>.r2.cloudflarestorage.com"
         },
         {
           "key": "cfr2PublicUrl",
@@ -68,6 +68,13 @@
           "title": "密钥 (Secret Key)",
           "default_value": "",
           "summary": "R2 API Token的Secret Access Key"
+        },
+        {
+          "type": "button",
+          "title": "关于 Cloudflare R2",
+          "summary": "点击查看相关介绍和使用教程",
+          "on_click": "com.gg.SaltDiscordPlugin.ButtonClick.onButtonClick",
+          "arrow_type": "link"
         }
       ]
     }

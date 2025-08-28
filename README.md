@@ -2,12 +2,14 @@
 ## 用法:
 1. 将Plugin复制到%appdata%\Salt Player for Windows\workshop\plugins
 2. 在设置 → 创意工坊 → 模组管理 启用该插件
-3. 重启应用
+3. 配置插件
 
 ## 效果
 ![](./Images/img.png)
 ![](./Images/img_1.png)
 
+## R2配置指南
+[Cloudflare R2 配置指南](./CLOUDFLARE_R2_SETUP.md)
 # **不需要解压!!**
 
 ## Discord出现两个SPW的解决方法
