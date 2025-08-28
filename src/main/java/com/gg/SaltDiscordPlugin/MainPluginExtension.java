@@ -190,7 +190,7 @@ public class MainPluginExtension implements PlaybackExtensionPoint {
     private String fetchCoverFromNetEase(MediaItem mediaItem) {
         try {
             // 构建搜索URL
-            String searchQuery = mediaItem.getTitle() + "-" + mediaItem.getAlbum();
+            String searchQuery = mediaItem.getTitle() + "-" + mediaItem.getArtist();
             String encodedQuery = URLEncoder.encode(searchQuery, StandardCharsets.UTF_8);
             String searchUrl = "https://music.163.com/api/search/get?type=1&offset=0&limit=1&s=" + encodedQuery;
 
@@ -239,7 +239,7 @@ public class MainPluginExtension implements PlaybackExtensionPoint {
     private String fetchCoverFromKugou(MediaItem mediaItem) {
         try {
             // 构建搜索URL
-            String searchQuery = mediaItem.getTitle() + "-" + mediaItem.getAlbum();
+            String searchQuery = mediaItem.getTitle() + "-" + mediaItem.getArtist();
             String encodedQuery = URLEncoder.encode(searchQuery, StandardCharsets.UTF_8);
             String searchUrl = "http://ioscdn.kugou.com/api/v3/search/song?page=1&pagesize=1&version=7910&keyword=" + encodedQuery;
 

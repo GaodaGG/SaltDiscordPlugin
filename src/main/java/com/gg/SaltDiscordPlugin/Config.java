@@ -1,20 +1,13 @@
 package com.gg.SaltDiscordPlugin;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import org.jetbrains.annotations.NotNull;
+
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardWatchEventKinds;
-import java.nio.file.WatchEvent;
-import java.nio.file.WatchKey;
-import java.nio.file.WatchService;
-
-import org.jetbrains.annotations.NotNull;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import java.nio.file.*;
 
 /**
  * 配置管理器，用于读取插件配置
@@ -149,7 +142,7 @@ public class Config {
     }
 
     public static class ConfigData {
-        public String displayType = "Name";
+        public String displayType = "Details";
         public boolean useCFR2 = false;
         public String cfr2BucketName = "";
         public String cfr2Endpoint = "";

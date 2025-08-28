@@ -77,13 +77,13 @@ public class CoverArtExtractor {
     }
 
     /**
-     * 压缩图片并转换为 JPEG 格式，控制文件大小在 150KB 以内
+     * 压缩图片并转换为 JPEG 格式，控制文件大小在 130KB 以内
      *
      * @param originalImageData 原始图片数据
      * @return 压缩后的 JPEG 图片数据，失败时返回 null
      */
     private static byte[] compressAndConvertToJpg(byte[] originalImageData) {
-        final int MAX_FILE_SIZE = 150 * 1024; // 150KB
+        final int MAX_FILE_SIZE = 130 * 1024; // 130KB
         try {
             // 读取原始图片
             BufferedImage originalImage = ImageIO.read(new ByteArrayInputStream(originalImageData));

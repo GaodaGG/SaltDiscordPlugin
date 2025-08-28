@@ -8,12 +8,12 @@
           "key": "displayType",
           "type": "list",
           "title": "类型",
-          "default_value": "Name",
+          "default_value": "Details",
           "summary": "This is a summary",
           "entries": [
-            "Name",
-            "State",
-            "Details"
+            "应用名",
+            "歌手",
+            "歌名"
           ],
           "entry_values": [
             "Name",

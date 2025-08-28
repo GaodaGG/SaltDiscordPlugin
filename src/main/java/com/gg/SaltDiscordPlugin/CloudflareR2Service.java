@@ -1,14 +1,5 @@
 package com.gg.SaltDiscordPlugin;
 
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.time.Duration;
-
-import com.xuncorp.spw.workshop.api.WorkshopApi;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -17,6 +8,10 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
+
+import java.net.URI;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 /**
  * Cloudflare R2 存储服务
@@ -44,9 +39,9 @@ public class CloudflareR2Service {
 
         // 创建 S3 客户端，配置为使用 Cloudflare R2
         this.s3Client = S3Client.builder()
-                .region(Region.of("auto"))
-                .credentialsProvider(StaticCredentialsProvider.create(awsCredentials))
                 .endpointOverride(URI.create(endpointUrl))
+                .credentialsProvider(StaticCredentialsProvider.create(awsCredentials))
+                .region(Region.of("auto"))
                 .serviceConfiguration(serviceConfiguration)
                 .build();
     }
@@ -71,8 +66,10 @@ public class CloudflareR2Service {
                     .contentType(mimeType)
                     .build();
 
+            RequestBody requestBody = RequestBody.fromBytes(imageData);
+
             // 执行上传
-            PutObjectResponse response = s3Client.putObject(putObjectRequest, RequestBody.fromBytes(imageData));
+            PutObjectResponse response = s3Client.putObject(putObjectRequest, requestBody);
 
             if (response.sdkHttpResponse().isSuccessful()) {
                 // 构建公共访问 URL

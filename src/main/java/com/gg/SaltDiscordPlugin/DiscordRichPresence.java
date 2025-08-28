@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import de.jcm.discordgamesdk.Core;
 import de.jcm.discordgamesdk.CreateParams;
-import de.jcm.discordgamesdk.GameSDKException;
+import de.jcm.discordgamesdk.LogLevel;
 import de.jcm.discordgamesdk.Result;
 import de.jcm.discordgamesdk.activity.Activity;
 import de.jcm.discordgamesdk.activity.ActivityType;
@@ -97,6 +97,8 @@ public class DiscordRichPresence {
         params.setFlags(CreateParams.Flags.NO_REQUIRE_DISCORD);
 
         core = new Core(params);
+        core.setLogHook(LogLevel.ERROR, (level, message) ->
+                System.out.printf("[%s] %s\n", level, message));
 
         // 启动回调线程
         startCallbackThread();
@@ -350,8 +352,9 @@ public class DiscordRichPresence {
 
         SetActivity.Args args = new SetActivity.Args(corePrivate.pid, currentActivity);
         JsonObject asJsonObject = new Gson().toJsonTree(args).getAsJsonObject();
-        asJsonObject.get("activity").getAsJsonObject().addProperty("status_display_type", DisplayType.Details.ordinal()); // 服了，就为了这玩意各种反射拿
+        int ordinal = DisplayType.valueOf(Config.getInstance().getDisplayType()).ordinal();
 
+        asJsonObject.get("activity").getAsJsonObject().addProperty("status_display_type", ordinal); // 服了，就为了这玩意各种反射拿
         Command command = new Command();
         command.setCmd(Command.Type.SET_ACTIVITY);
         command.setArgs(asJsonObject);
