@@ -144,6 +144,10 @@ public class Config {
     public boolean isDisableKugou() {
         return configData.disableKugou;
     }
+    
+    public boolean isDisableQQ() {
+        return configData.disableQQ;
+    }
 
     public ConfigData getConfigData() {
         return configData;
@@ -153,6 +157,7 @@ public class Config {
         public String displayType = "Details";
         public boolean disableNetEase = false;
         public boolean disableKugou = false;
+        public boolean disableQQ = false;
         public boolean useCFR2 = false;
         public String cfr2BucketName = "";
         public String cfr2Endpoint = "";
