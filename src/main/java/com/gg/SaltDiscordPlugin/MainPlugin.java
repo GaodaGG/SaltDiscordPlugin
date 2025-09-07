@@ -1,5 +1,6 @@
 package com.gg.SaltDiscordPlugin;
 
+import com.gg.SaltDiscordPlugin.discord.DiscordRichPresence;
 import org.pf4j.Plugin;
 
 public class MainPlugin extends Plugin {

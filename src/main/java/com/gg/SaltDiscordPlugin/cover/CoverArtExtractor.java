@@ -1,4 +1,4 @@
-package com.gg.SaltDiscordPlugin;
+package com.gg.SaltDiscordPlugin.cover;
 
 import java.awt.Graphics2D;
 import java.awt.Image;
