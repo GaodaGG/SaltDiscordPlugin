@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'com.gg.SaltDiscordPlugin'
-version = '0.0.5'
+version = '0.0.6'
 
 java {
     sourceCompatibility = JavaVersion.VERSION_21
@@ -43,7 +43,7 @@ def pluginId = "com.gg.SaltDiscordPlugin"
 def pluginName = "Discord 丰富状态"
 def pluginVersion = version
 def pluginDescription = "在Discord中显示 SPW 丰富状态"
-def pluginProvider = "GaodaGG"
+def pluginProvider = "GaodaGG & zmxlsss666"
 def pluginOpenSourceUrl = "https://github.com/GaodaGG/SaltDiscordPlugin"
 
 tasks.named("jar") {
