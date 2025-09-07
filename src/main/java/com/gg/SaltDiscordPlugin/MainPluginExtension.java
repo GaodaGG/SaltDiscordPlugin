@@ -346,7 +346,7 @@ public class MainPluginExtension implements PlaybackExtensionPoint {
             JsonObject firstSong = list.get(0).getAsJsonObject();
             String f = firstSong.get("f").getAsString();
             String[] fParts = f.split("\\|");
-            if (fParts.length < 1) {
+            if (fParts[0].isEmpty()) {
                 return null;
             }
             String songId = fParts[0];
@@ -356,7 +356,7 @@ public class MainPluginExtension implements PlaybackExtensionPoint {
             String detailResult = getUrlContent(detailUrl);
             JsonObject detailJson = JsonParser.parseString(detailResult).getAsJsonObject();
             
-            if (detailJson.size() == 0 || !detailJson.has("data") || detailJson.get("data").isJsonNull()) {
+            if (detailJson == null || detailJson.isJsonNull() || !detailJson.has("data") || detailJson.get("data").isJsonNull()) {
                 return null;
             }
             
