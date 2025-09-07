@@ -137,6 +137,11 @@ public class MainPluginExtension implements PlaybackExtensionPoint {
                     // 如果网易云接口失败，尝试酷狗接口
                     coverUrl = fetchCoverFromKugou(mediaItem);
                 }
+                
+                if (coverUrl == null && !config.isDisableQQ()) {
+                    // 如果酷狗接口失败，尝试QQ音乐接口
+                    coverUrl = fetchCoverFromQQ(mediaItem);
+                }
             }
 
             // 更新封面
@@ -299,6 +304,86 @@ public class MainPluginExtension implements PlaybackExtensionPoint {
             return coverUrl;
         } catch (Exception e) {
             System.err.println("酷狗接口获取封面失败: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return null;
+    }
+    
+    /**
+     * 使用QQ音乐API在线获取封面
+     */
+    private String fetchCoverFromQQ(MediaItem mediaItem) {
+        try {
+            // 构建搜索URL
+            String searchQuery = mediaItem.getTitle() + " " + mediaItem.getArtist();
+            String encodedQuery = URLEncoder.encode(searchQuery, StandardCharsets.UTF_8);
+            String searchUrl = "https://c.y.qq.com/soso/fcgi-bin/music_search_new_platform?format=json&p=1&n=1&w=" + encodedQuery;
+
+            // 执行搜索请求
+            String searchResult = getUrlContent(searchUrl);
+            JsonObject searchJson = JsonParser.parseString(searchResult).getAsJsonObject();
+
+            if (!searchJson.has("data") || searchJson.get("data").isJsonNull()) {
+                return null;
+            }
+
+            JsonObject data = searchJson.getAsJsonObject("data");
+            if (!data.has("song") || data.get("song").isJsonNull()) {
+                return null;
+            }
+            
+            JsonObject song = data.getAsJsonObject("song");
+            if (!song.has("list") || song.get("list").isJsonNull()) {
+                return null;
+            }
+            
+            JsonArray list = song.getAsJsonArray("list");
+            if (list.isEmpty()) {
+                return null;
+            }
+            
+            // 获取歌曲ID
+            JsonObject firstSong = list.get(0).getAsJsonObject();
+            String f = firstSong.get("f").getAsString();
+            String[] fParts = f.split("\\|");
+            if (fParts[0].isEmpty()) {
+                return null;
+            }
+            String songId = fParts[0];
+            
+            // 获取歌曲详情
+            String detailUrl = "https://c.y.qq.com/v8/fcg-bin/fcg_play_single_song.fcg?tpl=yqq_song_detail&format=json&songid=" + songId;
+            String detailResult = getUrlContent(detailUrl);
+            JsonObject detailJson = JsonParser.parseString(detailResult).getAsJsonObject();
+            
+            if (detailJson == null || detailJson.isJsonNull() || !detailJson.has("data") || detailJson.get("data").isJsonNull()) {
+                return null;
+            }
+            
+            JsonArray dataArray = detailJson.getAsJsonArray("data");
+            if (dataArray.isEmpty()) {
+                return null;
+            }
+            
+            JsonObject songData = dataArray.get(0).getAsJsonObject();
+            if (!songData.has("album") || songData.get("album").isJsonNull()) {
+                return null;
+            }
+            
+            JsonObject album = songData.getAsJsonObject("album");
+            if (!album.has("mid") || album.get("mid").isJsonNull()) {
+                return null;
+            }
+            
+            String pmid = album.get("mid").getAsString();
+            
+            // 构建封面URL
+            String coverUrl = "https://y.qq.com/music/photo_new/T002R300x300M000" + pmid + ".jpg?max_age=2592000";
+            
+            System.out.println("QQ音乐接口获取封面成功: " + coverUrl);
+            return coverUrl;
+        } catch (Exception e) {
+            System.err.println("QQ音乐接口获取封面失败: " + e.getMessage());
             e.printStackTrace();
         }
         return null;
