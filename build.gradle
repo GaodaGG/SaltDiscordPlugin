@@ -23,7 +23,6 @@ dependencies {
     // https://mvnrepository.com/artifact/software.amazon.awssdk/s3
     implementation 'software.amazon.awssdk:s3:2.32.30'
     compileOnly 'net.jthink:jaudiotagger:3.0.1'
-    implementation 'com.google.code.gson:gson:2.10.1'
     implementation 'com.github.JnCrMx:discord-game-sdk4j:v1.0.0'
 //    implementation 'net.java.dev.jna:jna:5.13.0'
 //    implementation 'net.java.dev.jna:jna-platform:5.13.0'
@@ -47,9 +46,6 @@ def pluginProvider = "GaodaGG & zmxlsss666"
 def pluginOpenSourceUrl = "https://github.com/GaodaGG/SaltDiscordPlugin"
 
 tasks.named("jar") {
-    destinationDirectory = file(System.getenv("APPDATA") + "/Salt Player for Windows/workshop/plugins/")
-    archiveFileName = "plugin-${pluginName}-${pluginVersion}.jar"
-
     manifest {
         attributes["Plugin-Class"] = pluginClass
         attributes["Plugin-Id"] = pluginId
@@ -64,8 +60,8 @@ tasks.named("jar") {
 
 tasks.register("plugin", Jar) {
     destinationDirectory = file(System.getenv("APPDATA") + "/Salt Player for Windows/workshop/plugins/")
-    archiveFileName = "plugin-${pluginId}-${pluginVersion}.zip"
-    archiveBaseName.set("plugin-" + pluginId + "-" + pluginVersion)
+    archiveFileName = "plugin-${pluginName}-${pluginVersion}.zip"
+    archiveBaseName.set("plugin-" + pluginName + "-" + pluginVersion)
 
     into("classes") {
         with(tasks.named("jar").get())
