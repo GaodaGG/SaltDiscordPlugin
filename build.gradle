@@ -39,19 +39,23 @@ test {
 }
 
 def pluginClass = "com.gg.SaltDiscordPlugin.MainPlugin"
-def pluginId = "Discord 丰富状态"
+def pluginId = "com.gg.SaltDiscordPlugin"
+def pluginName = "Discord 丰富状态"
 def pluginVersion = version
+def pluginDescription = "在Discord中显示 SPW 丰富状态"
 def pluginProvider = "GaodaGG"
 def pluginOpenSourceUrl = "https://github.com/GaodaGG/SaltDiscordPlugin"
 
 tasks.named("jar") {
     destinationDirectory = file(System.getenv("APPDATA") + "/Salt Player for Windows/workshop/plugins/")
-    archiveFileName = "plugin-${pluginId}-${pluginVersion}.jar"
+    archiveFileName = "plugin-${pluginName}-${pluginVersion}.jar"
 
     manifest {
         attributes["Plugin-Class"] = pluginClass
         attributes["Plugin-Id"] = pluginId
+        attributes["Plugin-Name"] = pluginName
         attributes["Plugin-Version"] = pluginVersion
+        attributes["Plugin-Description"] = pluginDescription
         attributes["Plugin-Provider"] = pluginProvider
         attributes["Plugin-Open-Source-Url"] = pluginOpenSourceUrl
         attributes["Plugin-Has-Config"] = true

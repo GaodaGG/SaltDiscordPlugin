@@ -1,111 +1,75 @@
 package com.gg.SaltDiscordPlugin;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import org.jetbrains.annotations.NotNull;
+import com.xuncorp.spw.workshop.api.WorkshopApi;
+import com.xuncorp.spw.workshop.api.config.ConfigHelper;
+import com.xuncorp.spw.workshop.api.config.ConfigManager;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
-import java.nio.file.*;
+import java.nio.file.Files;
 
 /**
  * 配置管理器，用于读取插件配置
  */
 public class Config {
-    private static final String CONFIG_FILE = "config.json";
-    private static volatile Config instance;
-    private ConfigData configData;
+    private static Config instance;
+    ConfigManager configManager = WorkshopApi.manager().createConfigManager("com.gg.SaltDiscordPlugin");
+    ConfigHelper configHelper = configManager.getConfig();
+    private final ConfigData configData = new ConfigData();
 
     private Config() {
         loadConfig();
-        new Thread(this::configWatcher).start();
+        configWatcher();
     }
 
     public static Config getInstance() {
         if (instance == null) {
-            synchronized (Config.class) {
-                if (instance == null) {
-                    instance = new Config();
-                }
-            }
+            instance = new Config();
         }
         return instance;
     }
 
-    @NotNull
-    private static Path getConfigPath() {
-        return Path.of(System.getenv("APPDATA") + "/Salt Player for Windows/workshop/data/Discord 丰富状态/", CONFIG_FILE);
-    }
-
     private void loadConfig() {
-        Path configPath = getConfigPath();
-        Gson gson = new Gson();
-
-        if (Files.exists(configPath)) {
-            try (Reader reader = Files.newBufferedReader(configPath)) {
-                configData = gson.fromJson(reader, ConfigData.class);
-                System.out.println("配置文件加载成功");
-            } catch (IOException e) {
-                System.err.println("读取配置文件失败: " + e.getMessage());
-                configData = new ConfigData();
-            }
-        } else {
+        if (Files.notExists(configHelper.getConfigPath())) {
             // 创建默认配置文件
-            configData = new ConfigData();
             saveConfig();
+            return;
         }
+
+        configHelper.reload();
+        configData.displayType = configHelper.get("displayType", "Details");
+        configData.disableNetEase = configHelper.get("disableNetEase", false);
+        configData.disableKugou = configHelper.get("disableKugou", false);
+        configData.disableQQ = configHelper.get("disableQQ", false);
+        configData.useCFR2 = configHelper.get("useCFR2", false);
+        configData.cfr2BucketName = configHelper.get("cfr2BucketName", "");
+        configData.cfr2Endpoint = configHelper.get("cfr2Endpoint", "");
+        configData.cfr2PublicUrl = configHelper.get("cfr2PublicUrl", "");
+        configData.cfr2AccessKey = configHelper.get("cfr2AccessKey", "");
+        configData.cfr2SecretKey = configHelper.get("cfr2SecretKey", "");
+
+        System.out.println("配置文件加载成功");
     }
 
     public void saveConfig() {
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        Path configPath = getConfigPath();
-        if (configPath.getParent() != null) {
-            try {
-                Files.createDirectories(configPath.getParent());
-            } catch (IOException e) {
-                System.err.println("创建配置目录失败: " + e.getMessage());
-                return;
-            }
-        }
-        try (Writer writer = Files.newBufferedWriter(configPath)) {
-            gson.toJson(configData, writer);
-            System.out.println("配置文件保存成功");
-        } catch (IOException e) {
-            System.err.println("保存配置文件失败: " + e.getMessage());
-        }
+        configHelper.set("displayType", configData.displayType);
+        configHelper.set("disableNetEase", configData.disableNetEase);
+        configHelper.set("disableKugou", configData.disableKugou);
+        configHelper.set("disableQQ", configData.disableQQ);
+        configHelper.set("useCFR2", configData.useCFR2);
+        configHelper.set("cfr2BucketName", configData.cfr2BucketName);
+        configHelper.set("cfr2Endpoint", configData.cfr2Endpoint);
+        configHelper.set("cfr2PublicUrl", configData.cfr2PublicUrl);
+        configHelper.set("cfr2AccessKey", configData.cfr2AccessKey);
+        configHelper.set("cfr2SecretKey", configData.cfr2SecretKey);
+
+        configHelper.save();
     }
 
     private void configWatcher() {
-        try {
-            Path configPath = getConfigPath().getParent();
-            WatchService watcher = FileSystems.getDefault().newWatchService();
-            configPath.register(watcher, StandardWatchEventKinds.ENTRY_MODIFY);
-
-            while (true) {
-                WatchKey key = watcher.take();
-                for (WatchEvent<?> event : key.pollEvents()) {
-                    WatchEvent.Kind<?> kind = event.kind();
-                    if (kind == StandardWatchEventKinds.OVERFLOW) {
-                        continue;
-                    }
-
-                    WatchEvent<Path> ev = (WatchEvent<Path>) event;
-                    Path fileName = ev.context();
-
-                    if (fileName.toString().equals(CONFIG_FILE)) {
-                        System.out.println("配置文件已修改，重新加载配置");
-                        loadConfig();
-                        // 通知主扩展重新初始化 R2 服务
-                        MainPluginExtension.onConfigChanged();
-                    }
-                }
-
-                key.reset();
-            }
-        } catch (IOException | InterruptedException e) {
-            System.err.println("配置文件监听失败: " + e.getMessage());
-        }
+        configManager.addConfigChangeListener(configHelper -> {
+            loadConfig();
+            // 通知主扩展重新初始化 R2 服务
+            MainPluginExtension.onConfigChanged();
+        });
     }
 
     // Cloudflare R2 相关配置获取方法
@@ -144,7 +108,7 @@ public class Config {
     public boolean isDisableKugou() {
         return configData.disableKugou;
     }
-    
+
     public boolean isDisableQQ() {
         return configData.disableQQ;
     }
