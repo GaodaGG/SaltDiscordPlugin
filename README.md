@@ -8,6 +8,9 @@
 ![](./Images/img.png)
 ![](./Images/img_1.png)
 
+## 封面获取顺序
+### **Cloudflare R2 > 网易云 > QQ音乐 > 酷狗音乐**
+
 ## R2配置指南
 [Cloudflare R2 配置指南](./CLOUDFLARE_R2_SETUP.md)
 # **不需要解压!!**
