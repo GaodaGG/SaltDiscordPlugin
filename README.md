@@ -1,8 +1,8 @@
 # 增加 SPW Discord丰富状态的插件
 ## 用法:
-1. 将Plugin复制到%appdata%\Salt Player for Windows\workshop\plugins
-2. 在设置 → 创意工坊 → 模组管理 启用该插件
-3. 配置插件
+1. 在 SPW 设置 → 创意工坊 → 模组管理 → 右上角导入模组 → 选择 `Discord_Rich_Presence.zip`
+2. 配置插件
+3. 启用并享受它
 
 ## 效果
 ![](./Images/img.png)
