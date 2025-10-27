@@ -1,5 +1,10 @@
 package com.gg.SaltDiscordPlugin.cover;
 
+import org.jaudiotagger.audio.AudioFile;
+import org.jaudiotagger.audio.AudioFileIO;
+import org.jaudiotagger.tag.Tag;
+import org.jaudiotagger.tag.images.Artwork;
+
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.RenderingHints;
@@ -15,15 +20,11 @@ import javax.imageio.ImageWriteParam;
 import javax.imageio.ImageWriter;
 import javax.imageio.stream.ImageOutputStream;
 
-import org.jaudiotagger.audio.AudioFile;
-import org.jaudiotagger.audio.AudioFileIO;
-import org.jaudiotagger.tag.Tag;
-import org.jaudiotagger.tag.images.Artwork;
-
 /**
  * 封面图片提取器
  */
 public class CoverArtExtractor {
+    private static final int MAX_FILE_SIZE = 130 * 1024; // 130KB
 
     /**
      * 从音频文件中提取封面图片
@@ -40,7 +41,7 @@ public class CoverArtExtractor {
 
             AudioFile f = AudioFileIO.read(audioFile);
             Tag tag = f.getTag();
-            
+
             if (tag == null) {
                 return null;
             }
@@ -61,7 +62,7 @@ public class CoverArtExtractor {
 
             // 压缩并转换为 JPEG 格式，控制文件大小在 150KB 以内
             byte[] compressedImageData = compressAndConvertToJpg(originalImageData);
-            if (compressedImageData == null) {
+            if (compressedImageData.length == 0) {
                 return new CoverArtData(originalImageData, "cover" + getFileExtensionFromMimeType(originalMimeType), originalMimeType);
             }
 
@@ -83,12 +84,11 @@ public class CoverArtExtractor {
      * @return 压缩后的 JPEG 图片数据，失败时返回 null
      */
     private static byte[] compressAndConvertToJpg(byte[] originalImageData) {
-        final int MAX_FILE_SIZE = 130 * 1024; // 130KB
         try {
             // 读取原始图片
             BufferedImage originalImage = ImageIO.read(new ByteArrayInputStream(originalImageData));
             if (originalImage == null) {
-                return null;
+                return new byte[0];
             }
 
             // 获取原始尺寸
@@ -135,20 +135,14 @@ public class CoverArtExtractor {
             g2d.dispose();
 
             // 使用质量控制转换为 JPEG 格式
-            byte[] compressedData = compressToJpegWithQuality(targetImage, MAX_FILE_SIZE);
-
-            if (compressedData == null) {
-                return null;
-            }
-
-            return compressedData;
+            return compressToJpegWithQuality(targetImage);
 
         } catch (IOException e) {
             System.err.println("图片压缩失败: " + e.getMessage());
-            return null;
+            return new byte[0];
         } catch (Exception e) {
             System.err.println("图片处理异常: " + e.getMessage());
-            return null;
+            return new byte[0];
         }
     }
 
@@ -156,14 +150,13 @@ public class CoverArtExtractor {
      * 使用质量控制将图片压缩为 JPEG 格式，确保文件大小在指定范围内
      *
      * @param image 要压缩的图片
-     * @param maxFileSize 最大文件大小（字节）
      * @return 压缩后的 JPEG 数据，失败时返回 null
      */
-    private static byte[] compressToJpegWithQuality(BufferedImage image, int maxFileSize) {
+    private static byte[] compressToJpegWithQuality(BufferedImage image) {
         try {
             Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName("jpeg");
             if (!writers.hasNext()) {
-                return null;
+                return new byte[0];
             }
 
             ImageWriter writer = writers.next();
@@ -186,7 +179,7 @@ public class CoverArtExtractor {
                     byte[] data = outputStream.toByteArray();
 
                     // 如果文件大小符合要求，返回结果
-                    if (data.length <= maxFileSize) {
+                    if (data.length <= CoverArtExtractor.MAX_FILE_SIZE) {
                         writer.dispose();
                         return data;
                     }
@@ -196,14 +189,14 @@ public class CoverArtExtractor {
             }
 
             writer.dispose();
-            System.err.println("❌ 无法将图片压缩到 " + (maxFileSize / 1024) + "KB 以内");
+            System.err.println("❌ 无法将图片压缩到 " + (CoverArtExtractor.MAX_FILE_SIZE / 1024) + "KB 以内");
 
             // 如果所有质量级别都无法满足大小要求，返回最低质量的结果
             return compressWithLowestQuality(image);
 
         } catch (Exception e) {
             System.err.println("JPEG 压缩异常: " + e.getMessage());
-            return null;
+            return new byte[0];
         }
     }
 
@@ -214,7 +207,7 @@ public class CoverArtExtractor {
         try {
             Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName("jpeg");
             if (!writers.hasNext()) {
-                return null;
+                return new byte[0];
             }
 
             ImageWriter writer = writers.next();
@@ -237,7 +230,7 @@ public class CoverArtExtractor {
             }
         } catch (Exception e) {
             System.err.println("最低质量压缩失败: " + e.getMessage());
-            return null;
+            return new byte[0];
         }
     }
 
@@ -248,48 +241,19 @@ public class CoverArtExtractor {
         if (mimeType == null) {
             return ".jpg"; // 默认扩展名
         }
-        
-        switch (mimeType.toLowerCase()) {
-            case "image/jpeg":
-            case "image/jpg":
-                return ".jpg";
-            case "image/png":
-                return ".png";
-            case "image/gif":
-                return ".gif";
-            case "image/bmp":
-                return ".bmp";
-            case "image/webp":
-                return ".webp";
-            default:
-                return ".jpg"; // 默认扩展名
-        }
+
+        return switch (mimeType.toLowerCase()) {
+            case "image/jpeg", "image/jpg" -> ".jpg";
+            case "image/png" -> ".png";
+            case "image/gif" -> ".gif";
+            case "image/bmp" -> ".bmp";
+            case "image/webp" -> ".webp";
+            default -> ".jpg"; // 默认扩展名
+        };
     }
 
     /**
      * 封面图片数据类
      */
-    public static class CoverArtData {
-        private final byte[] imageData;
-        private final String fileName;
-        private final String mimeType;
-
-        public CoverArtData(byte[] imageData, String fileName, String mimeType) {
-            this.imageData = imageData;
-            this.fileName = fileName;
-            this.mimeType = mimeType;
-        }
-
-        public byte[] getImageData() {
-            return imageData;
-        }
-
-        public String getFileName() {
-            return fileName;
-        }
-
-        public String getMimeType() {
-            return mimeType;
-        }
-    }
+    public record CoverArtData(byte[] imageData, String fileName, String mimeType) {}
 }

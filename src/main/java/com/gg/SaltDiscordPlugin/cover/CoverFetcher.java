@@ -8,7 +8,7 @@ import com.xuncorp.spw.workshop.api.PlaybackExtensionPoint;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
 import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -219,7 +219,7 @@ public class CoverFetcher {
     private static String getUrlContent(String url) {
         StringBuilder content = new StringBuilder();
         try {
-            URLConnection connection = new URL(url).openConnection();
+            URLConnection connection = new URI(url).toURL().openConnection();
             connection.setRequestProperty("User-Agent", "Mozilla/5.0");
             InputStream inputStream = connection.getInputStream();
             BufferedReader reader = new BufferedReader(new java.io.InputStreamReader(inputStream, StandardCharsets.UTF_8));

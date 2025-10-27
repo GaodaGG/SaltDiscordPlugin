@@ -27,8 +27,8 @@ dependencies {
     implementation 'com.github.JnCrMx:discord-game-sdk4j:v1.0.0'
 //    implementation 'net.java.dev.jna:jna:5.13.0'
 //    implementation 'net.java.dev.jna:jna-platform:5.13.0'
-    compileOnly "com.github.Moriafly:api:0.1.0-dev14"
-    kapt "com.github.Moriafly:api:0.1.0-dev14"
+    compileOnly "com.github.Moriafly:spw-workshop-api:0.1.0-dev14"
+    kapt "com.github.Moriafly:spw-workshop-api:0.1.0-dev14"
 
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'

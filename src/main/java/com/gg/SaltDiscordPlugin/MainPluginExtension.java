@@ -167,9 +167,9 @@ public class MainPluginExtension implements PlaybackExtensionPoint {
 
             // 上传到 R2
             String uploadedUrl = r2Service.uploadCoverImage(
-                    coverData.getImageData(),
-                    coverData.getFileName(),
-                    coverData.getMimeType()
+                    coverData.imageData(),
+                    coverData.fileName(),
+                    coverData.mimeType()
             );
 
             if (uploadedUrl != null) {

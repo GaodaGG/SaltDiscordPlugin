@@ -47,8 +47,6 @@ public class DiscordRichPresence {
     private Core core;
     private Activity currentActivity;
     private Thread callbackThread;
-    // 默认配置
-    private long clientId;
     // 当前播放状态
     private volatile String currentSong = "";
     private volatile String currentArtist = "";
@@ -84,15 +82,14 @@ public class DiscordRichPresence {
      * 初始化 Discord Rich Presence
      *
      * @param clientId Discord 应用程序 ID
-     * @return 是否初始化成功
+     * @param callback 初始化回调
+     *
      */
     public synchronized void initialize(long clientId, InitializeCallback callback) {
         if (initialized.get()) {
             callback.onSuccess();
             return;
         }
-
-        this.clientId = clientId;
 
         CreateParams params = new CreateParams();
         params.setClientID(clientId);
@@ -111,6 +108,8 @@ public class DiscordRichPresence {
 
     /**
      * 使用默认客户端 ID 初始化
+     *
+     * @param callback 初始化回调
      */
     public void initialize(InitializeCallback callback) {
         // 插件默认的 Discord 客户端 ID
