@@ -87,7 +87,7 @@ public class DiscordRichPresence {
      */
     public synchronized void initialize(long clientId, InitializeCallback callback) {
         if (initialized.get()) {
-            callback.onSuccess();
+            callback.onFailure("Discord 已初始化，无需重复初始化。");
             return;
         }
 
