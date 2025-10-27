@@ -18,7 +18,9 @@ public class ButtonClick {
     }
 
     public static void onReconnectClick() {
-        DiscordRichPresence.getInstance().initialize(new DiscordRichPresence.InitializeCallback() {
+        DiscordRichPresence discordRichPresence = DiscordRichPresence.getInstance();
+        discordRichPresence.shutdown();
+        discordRichPresence.initialize(new DiscordRichPresence.InitializeCallback() {
             @Override
             public void onSuccess() {
                 WorkshopApi.ui().toast("Discord Rich Presence 重连成功!", WorkshopApi.Ui.ToastType.Success);
