@@ -1,5 +1,8 @@
 package com.gg.SaltDiscordPlugin;
 
+import com.gg.SaltDiscordPlugin.discord.DiscordRichPresence;
+import com.xuncorp.spw.workshop.api.WorkshopApi;
+
 import java.io.IOException;
 
 public class ButtonClick {
@@ -11,5 +14,19 @@ public class ButtonClick {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static void onReconnectClick() {
+        DiscordRichPresence.getInstance().initialize(new DiscordRichPresence.InitializeCallback() {
+            @Override
+            public void onSuccess() {
+                WorkshopApi.ui().toast("Discord Rich Presence 重连成功!", WorkshopApi.Ui.ToastType.Success);
+            }
+
+            @Override
+            public void onFailure(String errorMessage) {
+                WorkshopApi.ui().toast("Discord Rich Presence 重连失败，" + errorMessage, WorkshopApi.Ui.ToastType.Error);
+            }
+        });
     }
 }

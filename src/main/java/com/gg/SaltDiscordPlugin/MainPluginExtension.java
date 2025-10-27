@@ -67,6 +67,10 @@ public class MainPluginExtension implements PlaybackExtensionPoint {
     @Override
     public String onBeforeLoadLyrics(@NotNull MediaItem mediaItem) {
         DiscordRichPresence discordRichPresence = DiscordRichPresence.getInstance();
+        if (!discordRichPresence.isDiscordRunning()) {
+            return null;
+        }
+
         discordRichPresence.setListeningActivity(mediaItem.getTitle(), mediaItem.getArtist(), mediaItem.getAlbum());
 
         try {

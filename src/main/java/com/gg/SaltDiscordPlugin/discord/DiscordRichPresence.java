@@ -3,6 +3,14 @@ package com.gg.SaltDiscordPlugin.discord;
 import com.gg.SaltDiscordPlugin.Config;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.time.Instant;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
+
 import de.jcm.discordgamesdk.Core;
 import de.jcm.discordgamesdk.CreateParams;
 import de.jcm.discordgamesdk.LogLevel;
@@ -11,13 +19,6 @@ import de.jcm.discordgamesdk.activity.Activity;
 import de.jcm.discordgamesdk.activity.ActivityType;
 import de.jcm.discordgamesdk.impl.Command;
 import de.jcm.discordgamesdk.impl.commands.SetActivity;
-
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.time.Instant;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
 
 /**
  * Discord Rich Presence 单例类
@@ -85,10 +86,10 @@ public class DiscordRichPresence {
      * @param clientId Discord 应用程序 ID
      * @return 是否初始化成功
      */
-    public synchronized boolean initialize(long clientId) {
+    public synchronized void initialize(long clientId, InitializeCallback callback) {
         if (initialized.get()) {
-            System.out.println("Discord Rich Presence 已经初始化");
-            return true;
+            callback.onSuccess();
+            return;
         }
 
         this.clientId = clientId;
@@ -102,20 +103,19 @@ public class DiscordRichPresence {
                 System.out.printf("[%s] %s\n", level, message));
 
         // 启动回调线程
-        startCallbackThread();
+        startCallbackThread(callback);
 
         initialized.set(true);
         System.out.println("Discord Rich Presence 初始化成功 (Client ID: " + clientId + ")");
-        return true;
     }
 
     /**
      * 使用默认客户端 ID 初始化
      */
-    public boolean initialize() {
+    public void initialize(InitializeCallback callback) {
         // 插件默认的 Discord 客户端 ID
         // https://discord.com/developers/applications 在这里新建应用后下方Copy Application ID
-        return initialize(1402153571725873203L);
+        initialize(1402153571725873203L, callback);
     }
 
     /**
@@ -138,6 +138,10 @@ public class DiscordRichPresence {
     public synchronized void setListeningActivity(String songName, String artist, String album, boolean playing) {
         if (!initialized.get() || core == null) {
             System.err.println("Discord Rich Presence 未初始化，请先调用 initialize()");
+            return;
+        }
+
+        if (!isDiscordRunning()) {
             return;
         }
 
@@ -233,7 +237,7 @@ public class DiscordRichPresence {
         this.currentPosition = position;
 
         // 只有在播放状态下才更新时间戳
-        if (isPlaying && currentActivity != null) {
+        if (isPlaying && currentActivity != null && isDiscordRunning()) {
             updateTimestamps();
         }
     }
@@ -366,7 +370,7 @@ public class DiscordRichPresence {
     /**
      * 启动回调线程处理 Discord 事件
      */
-    private void startCallbackThread() {
+    private void startCallbackThread(InitializeCallback callback) {
         callbackThread = new Thread(() -> {
             int count = 0;
             while (initialized.get() && !Thread.currentThread().isInterrupted()) {
@@ -376,6 +380,7 @@ public class DiscordRichPresence {
                     }
 
                     count = 0; // 成功时重置计数
+                    callback.onSuccess();
                 } catch (Exception e) {
                     if (!e.getMessage().equals("NOT_RUNNING")) {
                         e.printStackTrace();
@@ -393,6 +398,7 @@ public class DiscordRichPresence {
                     if (count >= 10) {
                         System.err.println("Discord 回调错误次数过多，正在关闭...");
                         shutdown();
+                        callback.onFailure("请确保 Discord 已启动。");
                         break;
                     }
                 }
@@ -402,6 +408,10 @@ public class DiscordRichPresence {
         callbackThread.setDaemon(true);
         callbackThread.setName("Discord-Callbacks-" + System.currentTimeMillis());
         callbackThread.start();
+    }
+
+    public boolean isDiscordRunning() {
+        return core != null && core.isDiscordRunning();
     }
 
     /**
@@ -446,6 +456,12 @@ public class DiscordRichPresence {
         playStartTime = null;
 
         System.out.println("Discord Rich Presence 已关闭");
+    }
+
+    public interface InitializeCallback {
+        void onSuccess();
+
+        void onFailure(String errorMessage);
     }
 }
 
