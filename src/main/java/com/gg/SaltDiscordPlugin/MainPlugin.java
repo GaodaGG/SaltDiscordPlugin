@@ -12,7 +12,6 @@ public class MainPlugin extends SpwPlugin {
 
     @Override
     public void start() {
-        super.start();
         DiscordRichPresence.getInstance().initialize(new DiscordRichPresence.InitializeCallback() {
             @Override
             public void onSuccess() {
@@ -24,5 +23,10 @@ public class MainPlugin extends SpwPlugin {
                 // do nothing
             }
         });
+    }
+
+    @Override
+    public void stop() {
+        DiscordRichPresence.getInstance().shutdown();
     }
 }
