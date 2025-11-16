@@ -90,7 +90,7 @@ public class DiscordRichPresence {
 
         core = new Core(params);
         core.setLogHook(LogLevel.ERROR, (level, message) ->
-                System.out.printf("[%s] %s\n", level, message));
+                System.out.printf("[%s] %s%n", level, message));
 
         // 启动回调线程
         startCallbackThread(callback);
@@ -156,7 +156,7 @@ public class DiscordRichPresence {
             currentActivity.setInstance(true);
 
             // 处理空值
-            String safeSongName = (songName == null || songName.trim().isEmpty()) ? "Unknown Song" : songName.trim();
+            String safeSongName = songName.trim().isEmpty() ? "Unknown Song" : songName.trim();
             String safeArtist = (artist == null || artist.trim().isEmpty()) ? "Unknown Artist" : artist.trim();
             String safeAlbum = (album == null || album.trim().isEmpty()) ? "Unknown Album" : album.trim();
 
