@@ -3,14 +3,6 @@ package com.gg.SaltDiscordPlugin.discord;
 import com.gg.SaltDiscordPlugin.Config;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.time.Instant;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
-
 import de.jcm.discordgamesdk.Core;
 import de.jcm.discordgamesdk.CreateParams;
 import de.jcm.discordgamesdk.LogLevel;
@@ -20,6 +12,13 @@ import de.jcm.discordgamesdk.activity.ActivityType;
 import de.jcm.discordgamesdk.impl.Command;
 import de.jcm.discordgamesdk.impl.commands.SetActivity;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.time.Instant;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
+
 /**
  * Discord Rich Presence 单例类
  * 用于管理音乐播放器的 Discord 状态显示
@@ -28,10 +27,8 @@ import de.jcm.discordgamesdk.impl.commands.SetActivity;
  * @since 2025-08-05
  */
 public class DiscordRichPresence {
-
-    private static final Object lock = new Object();
     // 单例实例
-    private static volatile DiscordRichPresence instance;
+    private static DiscordRichPresence instance;
 
     static {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -67,14 +64,11 @@ public class DiscordRichPresence {
      *
      * @return DiscordRichPresence 单例实例
      */
-    public static DiscordRichPresence getInstance() {
+    public static synchronized DiscordRichPresence getInstance() {
         if (instance == null) {
-            synchronized (lock) {
-                if (instance == null) {
-                    instance = new DiscordRichPresence();
-                }
-            }
+            instance = new DiscordRichPresence();
         }
+
         return instance;
     }
 
@@ -83,7 +77,6 @@ public class DiscordRichPresence {
      *
      * @param clientId Discord 应用程序 ID
      * @param callback 初始化回调
-     *
      */
     public synchronized void initialize(long clientId, InitializeCallback callback) {
         if (initialized.get()) {
@@ -154,9 +147,7 @@ public class DiscordRichPresence {
 
         try {
             // 清理之前的 Activity
-            if (currentActivity != null) {
-                currentActivity.close();
-            }
+            currentActivity = null;
 
             currentActivity = new Activity();
 
@@ -435,7 +426,6 @@ public class DiscordRichPresence {
 
         // 清理资源
         if (currentActivity != null) {
-            currentActivity.close();
             currentActivity = null;
         }
 
@@ -453,6 +443,9 @@ public class DiscordRichPresence {
         currentPosition = 0;
         songDuration = 0;
         playStartTime = null;
+
+        // 清除单例引用
+        instance = null;
 
         System.out.println("Discord Rich Presence 已关闭");
     }

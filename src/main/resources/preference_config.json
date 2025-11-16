@@ -41,12 +41,6 @@
           "title": "禁用从QQ音乐获取封面",
           "default_value": false,
           "summary": "启用后将不再尝试从QQ音乐获取封面"
-        },
-        {
-          "type": "button",
-          "title": "尝试重连 Discord",
-          "summary": "点击尝试重新连接 Discord",
-          "on_click": "com.gg.SaltDiscordPlugin.ButtonClick.onReconnectClick"
         }
       ]
     },

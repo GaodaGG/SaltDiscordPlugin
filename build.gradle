@@ -24,9 +24,7 @@ dependencies {
     // https://mvnrepository.com/artifact/software.amazon.awssdk/s3
     implementation 'software.amazon.awssdk:s3:2.32.30'
     compileOnly 'net.jthink:jaudiotagger:3.0.1'
-    implementation 'com.github.JnCrMx:discord-game-sdk4j:v1.0.0'
-//    implementation 'net.java.dev.jna:jna:5.13.0'
-//    implementation 'net.java.dev.jna:jna-platform:5.13.0'
+    implementation 'com.github.JnCrMx:discord-game-sdk4j:08b2bf45a6'
     compileOnly "com.github.Moriafly:spw-workshop-api:0.1.0-dev14"
     kapt "com.github.Moriafly:spw-workshop-api:0.1.0-dev14"
 
