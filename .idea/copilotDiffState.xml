@@ -3,6 +3,13 @@
   <component name="CopilotDiffPersistence">
     <option name="pendingDiffs">
       <map>
+        <entry key="$PROJECT_DIR$/src/main/java/com/gg/SaltDiscordPlugin/SongFormatType.java">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/src/main/java/com/gg/SaltDiscordPlugin/SongFormatType.java" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/gg/SaltSteamPlugin/SteamApiNative.java">
           <value>
             <PendingDiffInfo>

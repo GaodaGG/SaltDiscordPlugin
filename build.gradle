@@ -15,6 +15,7 @@ java {
 repositories {
     mavenLocal()
     mavenCentral()
+    google()
     maven {
         url = 'https://jitpack.io'
     }
@@ -24,9 +25,12 @@ dependencies {
     // https://mvnrepository.com/artifact/software.amazon.awssdk/s3
     implementation 'software.amazon.awssdk:s3:2.32.30'
     compileOnly 'net.jthink:jaudiotagger:3.0.1'
-    implementation 'com.github.JnCrMx:discord-game-sdk4j:08b2bf45a6'
-    compileOnly "com.github.Moriafly:spw-workshop-api:0.1.0-dev14"
-    kapt "com.github.Moriafly:spw-workshop-api:0.1.0-dev14"
+    // JitPack 发什么神经 File not found, Build OK, 先自己构建个jar放libs里
+    implementation 'com.google.code.gson:gson:2.10.1'
+    implementation files('libs/discord-game-sdk4j-1.0.0.jar')
+//    implementation 'com.github.JnCrMx:discord-game-sdk4j:08b2bf45a6'
+    compileOnly "com.github.Moriafly:spw-workshop-api:0.1.0-dev20"
+    kapt "com.github.Moriafly:spw-workshop-api:0.1.0-dev20"
 
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
