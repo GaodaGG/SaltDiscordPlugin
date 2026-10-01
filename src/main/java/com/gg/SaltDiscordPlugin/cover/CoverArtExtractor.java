@@ -1,17 +1,11 @@
 package com.gg.SaltDiscordPlugin.cover;
 
-import org.jaudiotagger.audio.AudioFile;
-import org.jaudiotagger.audio.AudioFileIO;
-import org.jaudiotagger.tag.Tag;
-import org.jaudiotagger.tag.images.Artwork;
-
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
 
@@ -21,60 +15,56 @@ import javax.imageio.ImageWriter;
 import javax.imageio.stream.ImageOutputStream;
 
 /**
- * 封面图片提取器
+ * 封面图片处理器：压缩、格式转换与 MIME 嗅探
  */
 public class CoverArtExtractor {
     private static final int MAX_FILE_SIZE = 130 * 1024; // 130KB
 
     /**
-     * 从音频文件中提取封面图片
+     * 处理原始封面图片字节：压缩并转换为 JPEG 格式，控制文件大小在 130KB 以内
      *
-     * @param audioFilePath 音频文件路径
-     * @return 封面图片数据，如果没有封面则返回 null
+     * @param imageData 原始编码图片数据，如 JPEG 或 PNG
+     * @param mimeType  原始图片 MIME 类型，压缩失败回退原图时用于命名
+     * @return 处理后的封面图片数据，输入为空时返回 null
      */
-    public static CoverArtData extractCoverArt(String audioFilePath) {
-        try {
-            File audioFile = new File(audioFilePath);
-            if (!audioFile.exists()) {
-                return null;
-            }
-
-            AudioFile f = AudioFileIO.read(audioFile);
-            Tag tag = f.getTag();
-
-            if (tag == null) {
-                return null;
-            }
-
-            Artwork artwork = tag.getFirstArtwork();
-            if (artwork == null) {
-                System.out.println("音频文件没有封面图片: " + audioFilePath);
-                return null;
-            }
-
-            byte[] originalImageData = artwork.getBinaryData();
-            String originalMimeType = artwork.getMimeType();
-
-            if (originalImageData == null || originalImageData.length == 0) {
-                System.out.println("封面图片数据为空: " + audioFilePath);
-                return null;
-            }
-
-            // 压缩并转换为 JPEG 格式，控制文件大小在 150KB 以内
-            byte[] compressedImageData = compressAndConvertToJpg(originalImageData);
-            if (compressedImageData.length == 0) {
-                return new CoverArtData(originalImageData, "cover" + getFileExtensionFromMimeType(originalMimeType), originalMimeType);
-            }
-
-            String fileName = "cover.jpeg";
-            String mimeType = "image/jpeg";
-
-            return new CoverArtData(compressedImageData, fileName, mimeType);
-
-        } catch (Exception e) {
-            System.err.println("提取封面图片失败: " + audioFilePath + ", 错误: " + e.getMessage());
+    public static CoverArtData processImageBytes(byte[] imageData, String mimeType) {
+        if (imageData == null || imageData.length == 0) {
             return null;
         }
+
+        byte[] compressedImageData = compressAndConvertToJpg(imageData);
+        if (compressedImageData.length == 0) {
+            return new CoverArtData(imageData, "cover" + getFileExtensionFromMimeType(mimeType), mimeType);
+        }
+
+        return new CoverArtData(compressedImageData, "cover.jpeg", "image/jpeg");
+    }
+
+    /**
+     * 按魔数嗅探图片 MIME 类型
+     */
+    public static String sniffMimeType(byte[] data) {
+        if (data == null || data.length < 4) {
+            return "image/jpeg";
+        }
+
+        if ((data[0] & 0xFF) == 0xFF && (data[1] & 0xFF) == 0xD8) {
+            return "image/jpeg";
+        }
+        if ((data[0] & 0xFF) == 0x89 && data[1] == 0x50 && data[2] == 0x4E && data[3] == 0x47) {
+            return "image/png";
+        }
+        if (data[0] == 0x47 && data[1] == 0x49 && data[2] == 0x46) {
+            return "image/gif";
+        }
+        if (data[0] == 0x42 && data[1] == 0x4D) {
+            return "image/bmp";
+        }
+        if (data.length >= 12 && data[0] == 0x52 && data[1] == 0x49 && data[2] == 0x46 && data[3] == 0x46
+                && data[8] == 0x57 && data[9] == 0x45 && data[10] == 0x42 && data[11] == 0x50) {
+            return "image/webp";
+        }
+        return "image/jpeg";
     }
 
     /**

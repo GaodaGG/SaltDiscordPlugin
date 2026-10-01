@@ -4,13 +4,10 @@ import com.gg.SaltDiscordPlugin.cover.CoverArtExtractor;
 import com.gg.SaltDiscordPlugin.cover.CoverFetcher;
 import com.gg.SaltDiscordPlugin.discord.DiscordRichPresence;
 import com.xuncorp.spw.workshop.api.PlaybackExtensionPoint;
-import org.jaudiotagger.audio.AudioFile;
-import org.jaudiotagger.audio.AudioFileIO;
-import org.jaudiotagger.audio.AudioHeader;
+import com.xuncorp.spw.workshop.api.PluginPermission;
+import com.xuncorp.spw.workshop.api.WorkshopApi;
 import org.jetbrains.annotations.NotNull;
 import org.pf4j.Extension;
-
-import java.io.File;
 
 
 @Extension
@@ -73,11 +70,11 @@ public class MainPluginExtension implements PlaybackExtensionPoint {
 
         discordRichPresence.setListeningActivity(mediaItem.getTitle(), mediaItem.getArtist(), mediaItem.getAlbum());
 
-        try {
-            long duration = getDurationSeconds(mediaItem.getPath()) * 1000L;
+        long duration = resolveDurationMs(mediaItem);
+        if (duration > 0) {
             discordRichPresence.setSongDuration(duration);
-        } catch (Exception e) {
-            System.out.println("无法获取歌曲时长: " + e.getMessage());
+        } else {
+            System.out.println("无法获取歌曲时长");
         }
 
         // 根据配置决定封面获取方式
@@ -99,18 +96,33 @@ public class MainPluginExtension implements PlaybackExtensionPoint {
     }
 
     /**
-     * 获取音频文件时长（秒）
+     * 是否已获得曲库读取权限
      */
-    private int getDurationSeconds(String audioPath) {
-        try {
-            File audioFile = new File(audioPath);
-            AudioFile f = AudioFileIO.read(audioFile);
-            AudioHeader header = f.getAudioHeader();
-            return header.getTrackLength();
-        } catch (Exception e) {
-            System.err.println("读取音频文件失败: " + e.getMessage());
+    private static boolean isLibraryReadGranted() {
+        return WorkshopApi.manager().isPermissionGranted(PluginPermission.LIBRARY_READ);
+    }
+
+    /**
+     * 获取歌曲时长（毫秒）
+     * 通过 dev21 曲库 API 查询完整元数据，未授权或查询失败时返回 0
+     */
+    private long resolveDurationMs(MediaItem mediaItem) {
+        if (!isLibraryReadGranted() || mediaItem.getId().isEmpty()) {
             return 0;
         }
+
+        try {
+            MediaItem track = WorkshopApi.library()
+                    .getTrackById(mediaItem.getId())
+                    .toCompletableFuture()
+                    .join();
+            if (track != null) {
+                return track.getDuration();
+            }
+        } catch (Exception e) {
+            System.out.println("曲库查询歌曲时长失败: " + e.getMessage());
+        }
+        return 0;
     }
 
     /**
@@ -123,7 +135,7 @@ public class MainPluginExtension implements PlaybackExtensionPoint {
 
             // 如果启用了 CFR2，优先从文件中提取封面并上传
             if (config.isUseCFR2() && r2Service != null) {
-                coverUrl = extractAndUploadCover(mediaItem.getPath());
+                coverUrl = extractAndUploadCover(mediaItem);
             }
 
             // 如果从文件提取失败或未启用 CFR2，则使用在线获取
@@ -154,14 +166,29 @@ public class MainPluginExtension implements PlaybackExtensionPoint {
     }
 
     /**
-     * 从文件中提取封面并上传到 R2
+     * 提取歌曲内嵌封面并上传到 R2
+     * 通过 dev21 曲库 API 读取封面字节，未授权或无内嵌封面时返回 null（走在线获取）
      */
-    private String extractAndUploadCover(String audioFilePath) {
+    private String extractAndUploadCover(MediaItem mediaItem) {
         try {
-            // 提取封面
-            CoverArtExtractor.CoverArtData coverData = CoverArtExtractor.extractCoverArt(audioFilePath);
-            if (coverData == null) {
+            if (!isLibraryReadGranted() || mediaItem.getId().isEmpty()) {
+                return null;
+            }
+
+            byte[] coverBytes = WorkshopApi.library()
+                    .getCoverById(mediaItem.getId())
+                    .toCompletableFuture()
+                    .join();
+
+            if (coverBytes == null) {
                 System.out.println("文件中没有封面图片，将尝试在线获取");
+                return null;
+            }
+
+            CoverArtExtractor.CoverArtData coverData =
+                    CoverArtExtractor.processImageBytes(coverBytes, CoverArtExtractor.sniffMimeType(coverBytes));
+            if (coverData == null) {
+                System.out.println("封面图片处理失败，将尝试在线获取");
                 return null;
             }
 

@@ -11,7 +11,7 @@ import java.nio.file.Files;
  */
 public class Config {
     private static Config instance;
-    ConfigManager configManager = WorkshopApi.manager().createConfigManager("com.gg.SaltDiscordPlugin");
+    ConfigManager configManager = WorkshopApi.manager().createConfigManager();
     ConfigHelper configHelper = configManager.getConfig();
     private final ConfigData configData = new ConfigData();
 

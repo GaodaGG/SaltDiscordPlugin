@@ -1,7 +1,10 @@
+import com.xuncorp.spw.workshop.gradle.PluginPermission
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     id 'java'
-    id 'org.jetbrains.kotlin.jvm' version '2.0.21'
-    id 'org.jetbrains.kotlin.kapt' version '2.0.21'
+    id 'org.jetbrains.kotlin.jvm' version '2.4.20'
+    id 'org.jetbrains.kotlin.kapt' version '2.4.20'
     id 'com.xuncorp.spw.workshop' version '0.1.0-dev21'
 }
 
@@ -11,6 +14,12 @@ version = '0.0.7'
 java {
     sourceCompatibility = JavaVersion.VERSION_21
     targetCompatibility = JavaVersion.VERSION_21
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_21
+    }
 }
 
 repositories {
@@ -25,11 +34,9 @@ repositories {
 dependencies {
     // https://mvnrepository.com/artifact/software.amazon.awssdk/s3
     implementation 'software.amazon.awssdk:s3:2.32.30'
-    compileOnly 'net.jthink:jaudiotagger:3.0.1'
     // JitPack 发什么神经 File not found, Build OK, 先自己构建个jar放libs里
     implementation 'com.google.code.gson:gson:2.10.1'
     implementation files('libs/discord-game-sdk4j-1.0.0.jar')
-//    implementation 'com.github.JnCrMx:discord-game-sdk4j:08b2bf45a6'
     compileOnly "com.github.Moriafly:spw-workshop-api:0.1.0-dev21"
     kapt "com.github.Moriafly:spw-workshop-api:0.1.0-dev21"
 
@@ -58,4 +65,5 @@ spmod { config ->
     config.PluginProvider = pluginProvider
     config.PluginOpenSourceUrl = pluginOpenSourceUrl
     config.PluginHasConfig = true
+    config.PluginPermissions = [PluginPermission.LIBRARY_READ]
 }
